@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/eiannone/keyboard"
 	"github.com/mteolis/note-goat/internal/goat"
 	"github.com/sqweek/dialog"
 )
@@ -45,6 +47,7 @@ func main() {
 	goat.AddAISummary()
 
 	calcExecutionTime(start)
+	waitForQuit()
 }
 
 func sqweekInputExcel() string {
@@ -81,4 +84,25 @@ func calcExecutionTime(start time.Time) {
 	logger.Info("%s %s executed successfully in %dh:%dm:%ds\n",
 		"appName", appName, "version", version, "hours", hours, "minutes", minutes, "seconds", seconds)
 	log.Printf("%s %s executed successfully in %dh:%dm:%ds\n", appName, version, hours, minutes, seconds)
+}
+
+func waitForQuit() {
+	if err := keyboard.Open(); err != nil {
+		log.Fatalf("Error opening keyboard: %+v", err)
+	}
+	defer keyboard.Close()
+
+	fmt.Println("Press 'q' to quit...")
+
+	for {
+		char, _, err := keyboard.GetKey()
+		if err != nil {
+			log.Fatalf("Error getting key: %+v", err)
+		}
+		if char == 'q' || char == 'Q' {
+			break
+		}
+	}
+
+	fmt.Println("Exiting...")
 }
