@@ -29,19 +29,23 @@ const (
 )
 
 var (
-	logger *slog.Logger
+	logger     *slog.Logger
+	excelFile  string
+	promptFile string
 )
 
-func InitGoat(slogger *slog.Logger) {
+func InitGoat(slogger *slog.Logger, excelPath string, promptPath string) {
 	logger = slogger
+	excelFile = excelPath
+	promptFile = promptPath
 	gemini.InitModel(logger)
 }
 
-func AddAISummary(path string) {
-	xl, err := excelize.OpenFile(path)
+func AddAISummary() {
+	xl, err := excelize.OpenFile(excelFile)
 	if err != nil {
-		logger.Error("Error opening file %s: %+v\n", "path", path, "err", err)
-		log.Printf("Error opening file %s: %+v\n", path, err)
+		logger.Error("Error opening file %s: %+v\n", "path", excelFile, "err", err)
+		log.Printf("Error opening file %s: %+v\n", excelFile, err)
 		return
 	}
 	defer xl.Close()
@@ -110,11 +114,10 @@ func AddAISummary(path string) {
 }
 
 func buildPrompt(sheetString string) string {
-	path := "prompt.txt"
-	content, err := os.ReadFile(path)
+	content, err := os.ReadFile(promptFile)
 	if err != nil {
-		logger.Error("Error reading %s file: %+v\n", "path", path, "err", err)
-		log.Fatal("Error reading %s file: %+v", path, err)
+		logger.Error("Error reading %s file: %+v\n", "path", promptFile, "err", err)
+		log.Fatalf("Error reading %s file: %+v", promptFile, err)
 	}
 
 	return string(content) + "\n" + sheetString

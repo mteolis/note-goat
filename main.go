@@ -38,22 +38,35 @@ func main() {
 	logger.Info("%s %s executing...\n", appName, version)
 	log.Printf("%s %s executing...\n", appName, version)
 
-	filePath := promptInputFile()
+	excelPath := sqweekInputExcel()
+	promptPath := sqweekInputPrompt()
 
-	goat.InitGoat(logger)
-	goat.AddAISummary(filePath)
+	goat.InitGoat(logger, excelPath, promptPath)
+	goat.AddAISummary()
 
 	calcExecutionTime(start)
 }
 
-func promptInputFile() string {
+func sqweekInputExcel() string {
 	filePath, err := dialog.File().
 		Filter("Excel Files", "xlsx", "xls", "csv").
 		Title("Select an Excel file to NoteGoat").
 		Load()
 	if err != nil {
 		logger.Error("Error selecting file: %+v\n", "err", err)
-		log.Fatal("Error selecting file: %+v\n", err)
+		log.Fatalf("Error selecting file: %+v\n", err)
+	}
+	return filePath
+}
+
+func sqweekInputPrompt() string {
+	filePath, err := dialog.File().
+		Filter("Text Files", "txt").
+		Title("Select a Text file as NoteGoat prompt").
+		Load()
+	if err != nil {
+		logger.Error("Error selecting file: %+v\n", "err", err)
+		log.Fatalf("Error selecting file: %+v\n", err)
 	}
 	return filePath
 }

@@ -23,7 +23,7 @@ func InitModel(slogger *slog.Logger) {
 	client, err := genai.NewClient(ctx, option.WithAPIKey(os.Getenv("GEMINI_API_KEY")))
 	if err != nil {
 		logger.Error("Error creating client: %+v\n", "err", err)
-		log.Fatal("Error creating client:", err)
+		log.Fatalf("Error creating client: %+v", err)
 	}
 
 	model = client.GenerativeModel("gemini-2.0-flash")
