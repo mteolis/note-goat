@@ -98,14 +98,14 @@ func AddAISummary() {
 
 		prompt := buildPrompt(sheetString)
 
-		response, err := gemini.Prompt(prompt)
+		response, err := gemini.WaitForRateLimit(prompt)
 		if err != nil {
 			logger.Error("Error prompting Gemini AI: %+v\n", "err", err)
 			log.Printf("Error prompting Gemini AI: %+v\n", err)
 			return
 		}
 
-		summary := gemini.ExtractSummary(response)
+		summary := gemini.ExtractAnswer(response)
 		summary = insertNames(summary, clientFirstName, clientLastName, advisorFirstName, advisorLastName)
 
 		xl.SetCellValue(sheetName, summaryTarget, summary)

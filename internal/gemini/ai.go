@@ -5,8 +5,10 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/google/generative-ai-go/genai"
+	"github.com/googleapis/gax-go/v2/apierror"
 	"google.golang.org/api/option"
 )
 
@@ -45,7 +47,42 @@ func Prompt(prompt string) (*genai.GenerateContentResponse, error) {
 	return resp, nil
 }
 
-func ExtractSummary(resp *genai.GenerateContentResponse) string {
+func IsRateLimitError(err error) bool {
+	// if err HTTP code is 429 (too many requests) then rate limit is reached
+	if apiErr, ok := err.(*apierror.APIError); ok {
+		return apiErr.HTTPCode() == 429
+	}
+	return false
+}
+
+func WaitForRateLimit(prompt string) (*genai.GenerateContentResponse, error) {
+	sleep := 5
+	maxSleep := 60
+
+	for {
+		resp, err := Prompt(prompt)
+		if err != nil {
+			if IsRateLimitError(err) {
+				logger.Warn("Error prompting Gemini API: Rate limit reached - waiting %d seconds...\n", "sleep", sleep)
+				log.Printf("Error prompting Gemini API: Rate limit reached - waiting %d seconds...\n", sleep)
+
+				time.Sleep(time.Duration(sleep) * time.Second)
+
+				sleep *= 2
+
+				if sleep > maxSleep {
+					sleep = maxSleep
+				}
+				continue
+			}
+			return nil, err
+		}
+
+		return resp, nil
+	}
+}
+
+func ExtractAnswer(resp *genai.GenerateContentResponse) string {
 	if len(resp.Candidates) == 0 {
 		return ""
 	}
